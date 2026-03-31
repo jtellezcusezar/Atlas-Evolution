@@ -366,7 +366,7 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         hovertemplate=(
             "<b>Fecha:</b> %{x|%d %b %Y}<br>"
             "<b>Frente:</b> %{customdata[0]}<br>"
-            "<b>Diferencia reportada (días):</b> %{y}<br>"
+            "<b>Diferencia reportada:</b> %{y}<br>"
             "<extra></extra>"
         ),
     )
@@ -442,7 +442,7 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         height=430,
         hovermode="x unified",
         xaxis_title="Fecha",
-        yaxis_title="Diferencia reportada",
+        yaxis_title="Diferencia reportada (días)",
         legend=dict(
             orientation="h",
             yanchor="top",
