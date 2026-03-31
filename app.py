@@ -66,69 +66,15 @@ st.markdown(
             background: white;
             border: 1px solid #E3E8EF;
             border-radius: 18px;
-            padding: 1.2rem 1.2rem 0.8rem 1.2rem;
+            padding: 1.2rem 1.2rem 1rem 1.2rem;
             box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
             margin-bottom: 1rem;
         }
-        .timeline-track {
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 8px;
-            margin-top: 0.4rem;
-            padding-top: 0.3rem;
-            padding-bottom: 1.8rem;
-        }
-        .timeline-track::before {
-            content: "";
-            position: absolute;
-            top: 22px;
-            left: 2%;
-            right: 2%;
+        .timeline-track-only {
             height: 4px;
             border-radius: 999px;
             background: #D8E3F0;
-            z-index: 1;
-        }
-        .timeline-node {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            text-align: center;
-        }
-        .timeline-dot {
-            width: 18px;
-            height: 18px;
-            margin: 0 auto 10px auto;
-            border-radius: 50%;
-            background: #B8C9DC;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #B8C9DC;
-        }
-        .timeline-dot-active {
-            background: #2F6DB3;
-            box-shadow: 0 0 0 3px #2F6DB3;
-        }
-        .timeline-date {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #57728F;
-            line-height: 1.2;
-            min-height: 2.2rem;
-        }
-        .timeline-title-mini {
-            font-size: 0.78rem;
-            color: #1E3B5C;
-            line-height: 1.2;
-            margin-top: 0.2rem;
-        }
-        .timeline-detail {
-            background: white;
-            border: 1px solid #DCE6F0;
-            border-radius: 18px;
-            padding: 1rem 1.1rem;
-            box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
+            margin: 0 2%;
         }
         .timeline-detail-active {
             background: #EEF5FF;
@@ -163,9 +109,6 @@ st.markdown(
             color: #405469;
             line-height: 1.45;
             margin-bottom: 0.2rem;
-        }
-        div[data-testid="stHorizontalBlock"] div[role="radiogroup"] {
-            gap: 0.5rem;
         }
     </style>
     """,
@@ -416,7 +359,7 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         paper_bgcolor="white",
         plot_bgcolor="white",
         legend_title="Frente",
-        margin=dict(l=10, r=10, t=60, b=60),
+        margin=dict(l=10, r=10, t=60, b=80),
         height=430,
         hovermode="x unified",
         xaxis_title="Fecha",
@@ -424,9 +367,9 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         legend=dict(
             orientation="h",
             yanchor="top",
-            y=-0.25,
+            y=-0.30,
             xanchor="center",
-            x=0.5
+            x=0.5,
         ),
     )
     fig.update_xaxes(showgrid=False)
@@ -481,22 +424,61 @@ def build_bar_chart(df_front: pd.DataFrame, selected_front: str) -> go.Figure:
 
 
 def render_timeline_strip(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
-    html = ['<div class="timeline-wrapper">', '<div class="timeline-track">']
+    st.markdown(
+        """
+        <div class="timeline-wrapper">
+            <div class="timeline-track-only"></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    for _, row in timeline_df.iterrows():
-        dot_class = "timeline-dot timeline-dot-active" if row["event_key"] == active_event_key else "timeline-dot"
-        html.append(
-            f"""
-            <div class="timeline-node">
-                <div class="{dot_class}"></div>
-                <div class="timeline-date">{row['date_label']}</div>
-                <div class="timeline-title-mini">{row['title']}</div>
-            </div>
-            """
-        )
+    cols = st.columns(len(timeline_df))
 
-    html.append("</div></div>")
-    st.markdown("".join(html), unsafe_allow_html=True)
+    for i, (_, row) in enumerate(timeline_df.iterrows()):
+        is_active = row["event_key"] == active_event_key
+        dot_color = "#2F6DB3" if is_active else "#B8C9DC"
+        text_color = "#163A63" if is_active else "#57728F"
+        border_color = "#2F6DB3" if is_active else "#B8C9DC"
+
+        with cols[i]:
+            st.markdown(
+                f"""
+                <div style="text-align:center; margin-top:-56px;">
+                    <div style="
+                        width:18px;
+                        height:18px;
+                        border-radius:50%;
+                        margin:0 auto 10px auto;
+                        background:{dot_color};
+                        border:3px solid white;
+                        box-shadow:0 0 0 2px {border_color};
+                    "></div>
+                    <div style="
+                        font-size:0.72rem;
+                        font-weight:700;
+                        color:{text_color};
+                        line-height:1.2;
+                        min-height:2.2rem;
+                    ">{row['date_label']}</div>
+                    <div style="
+                        font-size:0.78rem;
+                        color:#1E3B5C;
+                        line-height:1.2;
+                        margin-top:0.2rem;
+                        min-height:2.5rem;
+                    ">{row['title']}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if st.button(
+                "Ver detalle",
+                key=f"timeline_btn_{row['event_key']}",
+                use_container_width=True,
+            ):
+                st.session_state["timeline_selected_key"] = row["event_key"]
 
 
 def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
@@ -505,7 +487,7 @@ def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional
     else:
         row = timeline_df[timeline_df["event_key"] == active_event_key].iloc[0]
 
-    st.markdown('<div class="section-title">Detalle del hito activo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Detalle del hito seleccionado</div>', unsafe_allow_html=True)
     st.markdown('<div class="timeline-detail-active">', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-date">{row["date_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-title">{row["title"]}</div>', unsafe_allow_html=True)
@@ -663,13 +645,7 @@ if selected_date is None and selected_bar and selected_bar.selection and selecte
 
 auto_event_key = nearest_timeline_event(selected_date, timeline_df)
 
-timeline_labels = [
-    f'{row["date_label"]} · {row["title"]}'
-    for _, row in timeline_df.iterrows()
-]
 timeline_keys = timeline_df["event_key"].tolist()
-label_to_key = dict(zip(timeline_labels, timeline_keys))
-key_to_label = dict(zip(timeline_keys, timeline_labels))
 
 if "timeline_selected_key" not in st.session_state:
     st.session_state["timeline_selected_key"] = timeline_keys[0]
@@ -678,19 +654,7 @@ if auto_event_key is not None:
     st.session_state["timeline_selected_key"] = auto_event_key
 
 st.markdown('<div class="section-title">Línea de tiempo general</div>', unsafe_allow_html=True)
-
 render_timeline_strip(timeline_df, st.session_state["timeline_selected_key"])
-
-selected_label = st.radio(
-    "Selecciona un hito",
-    options=timeline_labels,
-    index=timeline_labels.index(key_to_label[st.session_state["timeline_selected_key"]]),
-    horizontal=True,
-    label_visibility="collapsed",
-)
-
-st.session_state["timeline_selected_key"] = label_to_key[selected_label]
-
 render_timeline_detail(timeline_df, st.session_state["timeline_selected_key"])
 
 # =========================
