@@ -370,6 +370,36 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         ),
     )
 
+    milestone_dates = [
+        pd.Timestamp("2025-10-30"),
+        pd.Timestamp("2025-11-06"),
+        pd.Timestamp("2025-11-12"),
+        pd.Timestamp("2025-11-17"),
+        pd.Timestamp("2025-11-21"),
+        pd.Timestamp("2025-12-04"),
+        pd.Timestamp("2025-12-17"),
+        pd.Timestamp("2026-02-23"),
+        pd.Timestamp("2026-03-04"),
+    ]
+    milestone_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+    fig.add_trace(
+        go.Scatter(
+            x=milestone_dates,
+            y=[-0.5] * len(milestone_dates),
+            mode="lines+markers+text",
+            text=milestone_labels,
+            textposition="top center",
+            textfont=dict(size=11, color="#A13A3F"),
+            marker=dict(size=11, color="#E5484D", line=dict(color="#C9353A", width=2)),
+            line=dict(color="#E9A7AA", width=2, dash="dot"),
+            name="",
+            showlegend=False,
+            hovertemplate="<b>Hito</b><br>%{x|%d %b %Y}<extra></extra>",
+            customdata=milestone_labels,
+        )
+    )
+
     fig.update_layout(
         title="Diferencia reportada por fecha",
         paper_bgcolor="white",
@@ -586,6 +616,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    '''
+    <div style="display:flex; gap:12px; margin-bottom:0.65rem; flex-wrap:wrap;">
+        <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.55rem 0.85rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.9rem; color:#17324F;">
+            <b>En prueba</b><br>Manual: 28% &nbsp;|&nbsp; 3iAtlas: 72%
+        </div>
+        <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.55rem 0.85rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.9rem; color:#17324F;">
+            <b>Calibrados</b><br>Manual/no calibrados: 33% &nbsp;|&nbsp; 3iAtlas/calibrados: 67%
+        </div>
+    </div>
+    ''',
+    unsafe_allow_html=True,
+)
+
 # =========================
 # FILTROS
 # =========================
@@ -609,28 +653,7 @@ with filter_col3:
 
 front_df = filtered[filtered["front"] == selected_front].copy()
 
-# =========================
-# KPIS
-# =========================
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-with kpi1:
-    st.markdown(f'<div class="metric-card"><b>Proyecto</b><br>{selected_project}</div>', unsafe_allow_html=True)
-with kpi2:
-    st.markdown(f'<div class="metric-card"><b>Frentes visibles</b><br>{filtered["front"].nunique()}</div>', unsafe_allow_html=True)
-with kpi3:
-    st.markdown(
-        '<div class="metric-card"><b>Porcentaje de proyectos en Prueba</b><br>'
-        'Manualmente: 28%<br>3iAtlas: 72%</div>',
-        unsafe_allow_html=True,
-    )
-with kpi4:
-    st.markdown(
-        '<div class="metric-card"><b>Porcentaje de proyectos calibrados Vs no calibrados</b><br>'
-        'Manualmente y/o no calibrados: 33%<br>3iAtlas y calibrados: 67%</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:0.2rem'></div>", unsafe_allow_html=True)
 
 # =========================
 # GRÁFICOS SUPERIORES
@@ -661,9 +684,10 @@ with right_col:
 selected_date = None
 
 if selected_line and selected_line.selection and selected_line.selection.get("points"):
-    first_point = selected_line.selection["points"][0]
-    x_value = first_point.get("x")
-    if x_value is not None:
+    point = selected_line.selection["points"][0]
+    x_value = point.get("x")
+    y_value = point.get("y")
+    if x_value is not None and y_value == -0.5:
         selected_date = pd.to_datetime(x_value)
 
 if selected_date is None and selected_bar and selected_bar.selection and selected_bar.selection.get("points"):
