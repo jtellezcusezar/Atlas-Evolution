@@ -366,7 +366,7 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         hovertemplate=(
             "<b>Fecha:</b> %{x|%d %b %Y}<br>"
             "<b>Frente:</b> %{customdata[0]}<br>"
-            "<b>Diferencia reportada:</b> %{y}<br>"
+            "<b>Diferencia reportada (días):</b> %{y}<br>"
             "<extra></extra>"
         ),
     )
