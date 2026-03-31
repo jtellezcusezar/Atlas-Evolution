@@ -51,48 +51,6 @@ st.markdown(
             padding: 0.9rem 1rem;
             box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
         }
-        .timeline-card {
-            background: white;
-            border: 1px solid #E3E8EF;
-            border-radius: 18px;
-            padding: 1rem 1.1rem;
-            margin-bottom: 0.9rem;
-            box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
-        }
-        .timeline-card-active {
-            background: #EEF5FF;
-            border: 1px solid #B9D4FF;
-            border-radius: 18px;
-            padding: 1rem 1.1rem;
-            margin-bottom: 0.9rem;
-            box-shadow: 0 3px 12px rgba(57, 106, 177, 0.10);
-        }
-        .timeline-date {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #3A5D8A;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .timeline-title {
-            font-size: 1.12rem;
-            font-weight: 700;
-            color: #122B46;
-            margin-top: 0.15rem;
-            margin-bottom: 0.6rem;
-        }
-        .timeline-subhead {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #244567;
-            margin-top: 0.55rem;
-            margin-bottom: 0.2rem;
-        }
-        .timeline-text {
-            font-size: 0.92rem;
-            color: #405469;
-            line-height: 1.45;
-        }
         .pill {
             display: inline-block;
             background: #EFF3F8;
@@ -103,6 +61,111 @@ st.markdown(
             padding: 0.22rem 0.6rem;
             margin-right: 0.35rem;
             margin-bottom: 0.35rem;
+        }
+        .timeline-wrapper {
+            background: white;
+            border: 1px solid #E3E8EF;
+            border-radius: 18px;
+            padding: 1.2rem 1.2rem 0.8rem 1.2rem;
+            box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
+            margin-bottom: 1rem;
+        }
+        .timeline-track {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 0.4rem;
+            padding-top: 0.3rem;
+            padding-bottom: 1.8rem;
+        }
+        .timeline-track::before {
+            content: "";
+            position: absolute;
+            top: 22px;
+            left: 2%;
+            right: 2%;
+            height: 4px;
+            border-radius: 999px;
+            background: #D8E3F0;
+            z-index: 1;
+        }
+        .timeline-node {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            text-align: center;
+        }
+        .timeline-dot {
+            width: 18px;
+            height: 18px;
+            margin: 0 auto 10px auto;
+            border-radius: 50%;
+            background: #B8C9DC;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #B8C9DC;
+        }
+        .timeline-dot-active {
+            background: #2F6DB3;
+            box-shadow: 0 0 0 3px #2F6DB3;
+        }
+        .timeline-date {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #57728F;
+            line-height: 1.2;
+            min-height: 2.2rem;
+        }
+        .timeline-title-mini {
+            font-size: 0.78rem;
+            color: #1E3B5C;
+            line-height: 1.2;
+            margin-top: 0.2rem;
+        }
+        .timeline-detail {
+            background: white;
+            border: 1px solid #DCE6F0;
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
+        }
+        .timeline-detail-active {
+            background: #EEF5FF;
+            border: 1px solid #B9D4FF;
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 3px 12px rgba(57, 106, 177, 0.10);
+        }
+        .timeline-detail-date {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #3A5D8A;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .timeline-detail-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #122B46;
+            margin-top: 0.1rem;
+            margin-bottom: 0.65rem;
+        }
+        .timeline-subhead {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #244567;
+            margin-top: 0.65rem;
+            margin-bottom: 0.2rem;
+        }
+        .timeline-text {
+            font-size: 0.92rem;
+            color: #405469;
+            line-height: 1.45;
+            margin-bottom: 0.2rem;
+        }
+        div[data-testid="stHorizontalBlock"] div[role="radiogroup"] {
+            gap: 0.5rem;
         }
     </style>
     """,
@@ -263,9 +326,8 @@ def normalize_numeric(value):
 def load_excel_long(path: Path) -> pd.DataFrame:
     raw = pd.read_excel(path, sheet_name=0, header=None)
 
-    # Columnas fijas
-    project_col = 1   # B
-    front_col = 2     # C
+    project_col = 1  # B
+    front_col = 2    # C
 
     records = []
     for row_idx in range(3, len(raw)):
@@ -325,36 +387,20 @@ def nearest_timeline_event(selected_date: Optional[pd.Timestamp], timeline_df: p
     return timeline_df.loc[idx, "event_key"]
 
 
-def render_timeline_cards(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
-    st.markdown('<div class="section-title">Línea de tiempo general</div>', unsafe_allow_html=True)
-
-    for _, row in timeline_df.iterrows():
-        card_class = "timeline-card-active" if row["event_key"] == active_event_key else "timeline-card"
-        with st.container():
-            st.markdown(f'<div class="{card_class}">', unsafe_allow_html=True)
-            st.markdown(f'<div class="timeline-date">{row["date_label"]}</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="timeline-title">{row["title"]}</div>', unsafe_allow_html=True)
-            st.markdown(f'<span class="pill">Fecha vinculada: {pd.to_datetime(row["matched_date"]).strftime("%d %b %Y")}</span>', unsafe_allow_html=True)
-            st.markdown('<div class="timeline-subhead">Situaciones identificadas</div>', unsafe_allow_html=True)
-            for item in row["situations"]:
-                st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
-            st.markdown('<div class="timeline-subhead">Soluciones implementadas</div>', unsafe_allow_html=True)
-            for item in row["solutions"]:
-                st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-
-def build_line_chart(df_filtered: pd.DataFrame) -> go.Figure:
+def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
     fig = px.line(
         df_filtered,
         x="date",
         y="reported_diff",
         color="front",
-        markers=True,
+        markers=show_points,
         custom_data=["front", "project"],
     )
+
+    mode_value = "lines+markers" if show_points else "lines"
+
     fig.update_traces(
-        mode="lines+markers",
+        mode=mode_value,
         line=dict(width=2),
         marker=dict(size=8),
         hovertemplate=(
@@ -364,16 +410,24 @@ def build_line_chart(df_filtered: pd.DataFrame) -> go.Figure:
             "<extra></extra>"
         ),
     )
+
     fig.update_layout(
         title="Diferencia reportada por fecha",
         paper_bgcolor="white",
         plot_bgcolor="white",
         legend_title="Frente",
-        margin=dict(l=10, r=10, t=60, b=20),
+        margin=dict(l=10, r=10, t=60, b=60),
         height=430,
         hovermode="x unified",
         xaxis_title="Fecha",
         yaxis_title="Diferencia reportada",
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.25,
+            xanchor="center",
+            x=0.5
+        ),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(gridcolor="rgba(15,39,68,0.08)", zeroline=False)
@@ -387,6 +441,7 @@ def build_bar_chart(df_front: pd.DataFrame, selected_front: str) -> go.Figure:
         var_name="metric",
         value_name="value",
     )
+
     metric_map = {
         "manual_delay": "Manual",
         "atlas_delay": "3iAtlas",
@@ -423,6 +478,51 @@ def build_bar_chart(df_front: pd.DataFrame, selected_front: str) -> go.Figure:
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(gridcolor="rgba(15,39,68,0.08)", zeroline=False)
     return fig
+
+
+def render_timeline_strip(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
+    html = ['<div class="timeline-wrapper">', '<div class="timeline-track">']
+
+    for _, row in timeline_df.iterrows():
+        dot_class = "timeline-dot timeline-dot-active" if row["event_key"] == active_event_key else "timeline-dot"
+        html.append(
+            f"""
+            <div class="timeline-node">
+                <div class="{dot_class}"></div>
+                <div class="timeline-date">{row['date_label']}</div>
+                <div class="timeline-title-mini">{row['title']}</div>
+            </div>
+            """
+        )
+
+    html.append("</div></div>")
+    st.markdown("".join(html), unsafe_allow_html=True)
+
+
+def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
+    if active_event_key is None:
+        row = timeline_df.iloc[0]
+    else:
+        row = timeline_df[timeline_df["event_key"] == active_event_key].iloc[0]
+
+    st.markdown('<div class="section-title">Detalle del hito activo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="timeline-detail-active">', unsafe_allow_html=True)
+    st.markdown(f'<div class="timeline-detail-date">{row["date_label"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="timeline-detail-title">{row["title"]}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<span class="pill">Fecha vinculada: {pd.to_datetime(row["matched_date"]).strftime("%d %b %Y")}</span>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="timeline-subhead">Situaciones identificadas</div>', unsafe_allow_html=True)
+    for item in row["situations"]:
+        st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="timeline-subhead">Soluciones implementadas</div>', unsafe_allow_html=True)
+    for item in row["solutions"]:
+        st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================
@@ -487,9 +587,7 @@ if filtered.empty:
     st.stop()
 
 fronts = sorted(filtered["front"].dropna().unique().tolist())
-default_front = fronts[0] if fronts else None
 
-# selector auxiliar discreto para el gráfico de barras
 selector_col1, selector_col2, selector_col3 = st.columns([1, 1, 2.3])
 with selector_col1:
     selected_front = st.selectbox("Frente destacado", options=fronts, index=0)
@@ -510,16 +608,16 @@ front_df = filtered[filtered["front"] == selected_front].copy()
 # =========================
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 with kpi1:
-    st.markdown('<div class="metric-card"><b>Proyecto</b><br>' + selected_project + '</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="metric-card"><b>Proyecto</b><br>{selected_project}</div>', unsafe_allow_html=True)
 with kpi2:
-    st.markdown('<div class="metric-card"><b>Frentes visibles</b><br>' + str(filtered["front"].nunique()) + '</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="metric-card"><b>Frentes visibles</b><br>{filtered["front"].nunique()}</div>', unsafe_allow_html=True)
 with kpi3:
     avg_diff = filtered["reported_diff"].dropna().mean()
     avg_diff_txt = f"{avg_diff:.2f}" if pd.notna(avg_diff) else "N/D"
-    st.markdown('<div class="metric-card"><b>Diferencia promedio</b><br>' + avg_diff_txt + '</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="metric-card"><b>Diferencia promedio</b><br>{avg_diff_txt}</div>', unsafe_allow_html=True)
 with kpi4:
     max_date_txt = pd.to_datetime(filtered["date"].max()).strftime("%d %b %Y")
-    st.markdown('<div class="metric-card"><b>Última fecha visible</b><br>' + max_date_txt + '</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="metric-card"><b>Última fecha visible</b><br>{max_date_txt}</div>', unsafe_allow_html=True)
 
 st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
 
@@ -529,10 +627,7 @@ st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
 left_col, right_col = st.columns(2)
 
 with left_col:
-    line_df = filtered.copy()
-    line_fig = build_line_chart(line_df)
-    if not show_points:
-        line_fig.update_traces(mode="lines", marker=dict(size=0))
+    line_fig = build_line_chart(filtered.copy(), show_points)
     selected_line = st.plotly_chart(
         line_fig,
         use_container_width=True,
@@ -566,7 +661,37 @@ if selected_date is None and selected_bar and selected_bar.selection and selecte
     if x_value is not None:
         selected_date = pd.to_datetime(x_value)
 
-active_event_key = nearest_timeline_event(selected_date, timeline_df)
+auto_event_key = nearest_timeline_event(selected_date, timeline_df)
+
+timeline_labels = [
+    f'{row["date_label"]} · {row["title"]}'
+    for _, row in timeline_df.iterrows()
+]
+timeline_keys = timeline_df["event_key"].tolist()
+label_to_key = dict(zip(timeline_labels, timeline_keys))
+key_to_label = dict(zip(timeline_keys, timeline_labels))
+
+if "timeline_selected_key" not in st.session_state:
+    st.session_state["timeline_selected_key"] = timeline_keys[0]
+
+if auto_event_key is not None:
+    st.session_state["timeline_selected_key"] = auto_event_key
+
+st.markdown('<div class="section-title">Línea de tiempo general</div>', unsafe_allow_html=True)
+
+render_timeline_strip(timeline_df, st.session_state["timeline_selected_key"])
+
+selected_label = st.radio(
+    "Selecciona un hito",
+    options=timeline_labels,
+    index=timeline_labels.index(key_to_label[st.session_state["timeline_selected_key"]]),
+    horizontal=True,
+    label_visibility="collapsed",
+)
+
+st.session_state["timeline_selected_key"] = label_to_key[selected_label]
+
+render_timeline_detail(timeline_df, st.session_state["timeline_selected_key"])
 
 # =========================
 # TABLA RESUMEN
@@ -585,8 +710,3 @@ with st.expander("Ver tabla de detalle filtrada", expanded=False):
         }
     )
     st.dataframe(detail, use_container_width=True, hide_index=True)
-
-# =========================
-# LÍNEA DE TIEMPO
-# =========================
-render_timeline_cards(timeline_df, active_event_key)
