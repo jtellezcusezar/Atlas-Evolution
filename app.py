@@ -382,11 +382,15 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         pd.Timestamp("2026-03-04"),
     ]
     milestone_labels = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    milestone_keys = [
+        "hito_1", "hito_2", "hito_3", "hito_4", "hito_5", "hito_6", "hito_7", "hito_8", "hito_9"
+    ]
+    milestone_y = -0.5
 
     fig.add_trace(
         go.Scatter(
             x=milestone_dates,
-            y=[-0.5] * len(milestone_dates),
+            y=[milestone_y] * len(milestone_dates),
             mode="lines+markers+text",
             text=milestone_labels,
             textposition="top center",
@@ -395,10 +399,25 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
             line=dict(color="#E9A7AA", width=2, dash="dot"),
             name="",
             showlegend=False,
-            hovertemplate="<b>Hito</b><br>%{x|%d %b %Y}<extra></extra>",
-            customdata=milestone_labels,
+            hovertemplate="<b>Hito %{text}</b><br>%{x|%d %b %Y}<extra></extra>",
+            customdata=[[k, "milestone"] for k in milestone_keys],
         )
     )
+
+    y_series = df_filtered["reported_diff"].dropna()
+    if y_series.empty:
+        y_min_data = 0.0
+        y_max_data = 0.0
+    else:
+        y_min_data = float(y_series.min())
+        y_max_data = float(y_series.max())
+
+    y_min = min(y_min_data, milestone_y) - 0.25
+    y_max = max(y_max_data, 0.0) + 0.25
+    if y_max - y_min < 1.0:
+        center = (y_max + y_min) / 2
+        y_min = center - 0.6
+        y_max = center + 0.6
 
     fig.update_layout(
         title="Diferencia reportada por fecha",
@@ -419,7 +438,7 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         ),
     )
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor="rgba(15,39,68,0.08)", zeroline=False)
+    fig.update_yaxes(gridcolor="rgba(15,39,68,0.08)", zeroline=False, range=[y_min, y_max])
     return fig
 
 
@@ -570,7 +589,6 @@ def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional
         row = timeline_df[timeline_df["event_key"] == active_event_key].iloc[0]
 
     st.markdown('<div class="section-title">Detalle del hito seleccionado</div>', unsafe_allow_html=True)
-    st.markdown('<div class="timeline-detail-active">', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-date">{row["date_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-title">{row["title"]}</div>', unsafe_allow_html=True)
 
@@ -584,8 +602,6 @@ def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional
         st.markdown('<div class="timeline-subhead">Soluciones implementadas</div>', unsafe_allow_html=True)
         for item in row["solutions"]:
             st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # =========================
@@ -682,21 +698,25 @@ with right_col:
 # INTERACCIÓN FECHA -> TIMELINE
 # =========================
 selected_date = None
+selected_event_key = None
 
 if selected_line and selected_line.selection and selected_line.selection.get("points"):
     point = selected_line.selection["points"][0]
+    customdata = point.get("customdata")
     x_value = point.get("x")
-    y_value = point.get("y")
-    if x_value is not None and y_value == -0.5:
+
+    if customdata and len(customdata) >= 2 and customdata[1] == "milestone":
+        selected_event_key = customdata[0]
+    elif x_value is not None:
         selected_date = pd.to_datetime(x_value)
 
-if selected_date is None and selected_bar and selected_bar.selection and selected_bar.selection.get("points"):
+if selected_event_key is None and selected_bar and selected_bar.selection and selected_bar.selection.get("points"):
     first_point = selected_bar.selection["points"][0]
     x_value = first_point.get("x")
     if x_value is not None:
         selected_date = pd.to_datetime(x_value)
 
-auto_event_key = nearest_timeline_event(selected_date, timeline_df)
+auto_event_key = selected_event_key if selected_event_key is not None else nearest_timeline_event(selected_date, timeline_df)
 
 timeline_keys = timeline_df["event_key"].tolist()
 
