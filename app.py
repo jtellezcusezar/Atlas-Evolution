@@ -66,17 +66,17 @@ st.markdown(
             background: white;
             border: 1px solid #E3E8EF;
             border-radius: 18px;
-            padding: 1.2rem 1.2rem 1rem 1.2rem;
+            padding: 0.6rem 0.8rem 0.1rem 0.8rem;
             box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
-            margin-bottom: 1rem;
-        }
-        .timeline-track-only {
-            height: 4px;
-            border-radius: 999px;
-            background: #D8E3F0;
-            margin: 0 2%;
+            margin-bottom: 0.6rem;
         }
         .timeline-detail-active {
+            background: #EEF5FF;
+            border: 1px solid #B9D4FF;
+            border-radius: 18px;
+            padding: 0.8rem 1rem;
+            box-shadow: 0 3px 12px rgba(57, 106, 177, 0.10);
+        }
             background: #EEF5FF;
             border: 1px solid #B9D4FF;
             border-radius: 18px;
@@ -101,10 +101,15 @@ st.markdown(
             font-size: 0.92rem;
             font-weight: 700;
             color: #244567;
-            margin-top: 0.65rem;
-            margin-bottom: 0.2rem;
+            margin-top: 0.2rem;
+            margin-bottom: 0.35rem;
         }
         .timeline-text {
+            font-size: 0.92rem;
+            color: #405469;
+            line-height: 1.45;
+            margin-bottom: 0.25rem;
+        }
             font-size: 0.92rem;
             color: #405469;
             line-height: 1.45;
@@ -441,7 +446,9 @@ def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[s
     plot_df["is_active"] = plot_df["event_key"] == active_event_key
     plot_df["marker_color"] = plot_df["is_active"].map({True: "#E5484D", False: "#B9D9F7"})
     plot_df["marker_line"] = plot_df["is_active"].map({True: "#C9353A", False: "#7EB8E6"})
-    plot_df["label_text"] = plot_df["date_label"] + "<br>" + plot_df["title"]
+    plot_df["marker_size"] = plot_df["is_active"].map({True: 22, False: 20})
+    plot_df["date_text"] = plot_df["date_label"]
+    plot_df["title_text"] = plot_df["title"]
 
     fig = go.Figure()
 
@@ -450,7 +457,7 @@ def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[s
             x=plot_df["x_pos"],
             y=plot_df["y_pos"],
             mode="lines",
-            line=dict(color="#B9D9F7", width=8),
+            line=dict(color="#B9D9F7", width=6),
             hoverinfo="skip",
             showlegend=False,
         )
@@ -460,12 +467,9 @@ def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[s
         go.Scatter(
             x=plot_df["x_pos"],
             y=plot_df["y_pos"],
-            mode="markers+text",
-            text=plot_df["label_text"],
-            textposition="bottom center",
-            textfont=dict(size=12, color="#163A63"),
+            mode="markers",
             marker=dict(
-                size=22,
+                size=plot_df["marker_size"],
                 color=plot_df["marker_color"],
                 line=dict(color=plot_df["marker_line"], width=3),
             ),
@@ -479,11 +483,37 @@ def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[s
         )
     )
 
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["x_pos"],
+            y=[0.955] * len(plot_df),
+            mode="text",
+            text=plot_df["date_text"],
+            textposition="middle center",
+            textfont=dict(size=12, color="#163A63"),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["x_pos"],
+            y=[0.915] * len(plot_df),
+            mode="text",
+            text=plot_df["title_text"],
+            textposition="middle center",
+            textfont=dict(size=12, color="#163A63"),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+
     fig.update_layout(
         paper_bgcolor="white",
         plot_bgcolor="white",
-        height=260,
-        margin=dict(l=30, r=30, t=30, b=80),
+        height=140,
+        margin=dict(l=15, r=15, t=10, b=10),
         xaxis=dict(
             showgrid=False,
             zeroline=False,
@@ -495,7 +525,7 @@ def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[s
             zeroline=False,
             showticklabels=False,
             fixedrange=True,
-            range=[0.80, 1.18],
+            range=[0.88, 1.06],
         ),
         dragmode=False,
         clickmode="event+select",
@@ -513,10 +543,6 @@ def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional
     st.markdown('<div class="timeline-detail-active">', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-date">{row["date_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="timeline-detail-title">{row["title"]}</div>', unsafe_allow_html=True)
-    st.markdown(
-        f'<span class="pill">Fecha vinculada: {pd.to_datetime(row["matched_date"]).strftime("%d %b %Y")}</span>',
-        unsafe_allow_html=True,
-    )
 
     col_a, col_b = st.columns(2)
     with col_a:
@@ -564,49 +590,22 @@ st.markdown(
 # FILTROS
 # =========================
 projects = sorted(df["project"].dropna().unique().tolist())
-min_date = pd.to_datetime(df["date"].min()).date()
-max_date = pd.to_datetime(df["date"].max()).date()
-
-filter_col1, filter_col2 = st.columns([1.2, 1.1])
+filter_col1, filter_col2, filter_col3 = st.columns([1.3, 1.2, 1.1])
 with filter_col1:
     selected_project = st.selectbox("Proyecto", options=projects, index=0)
-with filter_col2:
-    selected_range = st.date_input(
-        "Rango de fechas",
-        value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
-    )
 
-if isinstance(selected_range, tuple) and len(selected_range) == 2:
-    start_date, end_date = selected_range
-else:
-    start_date, end_date = min_date, max_date
-
-filtered = df[
-    (df["project"] == selected_project)
-    & (df["date"] >= pd.to_datetime(start_date))
-    & (df["date"] <= pd.to_datetime(end_date))
-].copy()
+filtered = df[df["project"] == selected_project].copy()
 
 if filtered.empty:
-    st.warning("No hay datos para la combinación de filtros seleccionada.")
+    st.warning("No hay datos para el proyecto seleccionado.")
     st.stop()
 
 fronts = sorted(filtered["front"].dropna().unique().tolist())
 
-selector_col1, selector_col2, selector_col3 = st.columns([1, 1, 2.3])
-with selector_col1:
+with filter_col2:
     selected_front = st.selectbox("Frente destacado", options=fronts, index=0)
-with selector_col2:
+with filter_col3:
     show_points = st.toggle("Mostrar marcadores", value=True)
-with selector_col3:
-    st.markdown(
-        '<div style="padding-top: 1.9rem; color:#5A6B7E; font-size:0.9rem;">'
-        'La gráfica de línea muestra todos los frentes. La gráfica de barras profundiza en el frente seleccionado.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
 
 front_df = filtered[filtered["front"] == selected_front].copy()
 
@@ -619,14 +618,19 @@ with kpi1:
 with kpi2:
     st.markdown(f'<div class="metric-card"><b>Frentes visibles</b><br>{filtered["front"].nunique()}</div>', unsafe_allow_html=True)
 with kpi3:
-    avg_diff = filtered["reported_diff"].dropna().mean()
-    avg_diff_txt = f"{avg_diff:.2f}" if pd.notna(avg_diff) else "N/D"
-    st.markdown(f'<div class="metric-card"><b>Diferencia promedio</b><br>{avg_diff_txt}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="metric-card"><b>Porcentaje de proyectos en Prueba</b><br>'
+        'Manualmente: 28%<br>3iAtlas: 72%</div>',
+        unsafe_allow_html=True,
+    )
 with kpi4:
-    max_date_txt = pd.to_datetime(filtered["date"].max()).strftime("%d %b %Y")
-    st.markdown(f'<div class="metric-card"><b>Última fecha visible</b><br>{max_date_txt}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="metric-card"><b>Porcentaje de proyectos calibrados Vs no calibrados</b><br>'
+        'Manualmente y/o no calibrados: 33%<br>3iAtlas y calibrados: 67%</div>',
+        unsafe_allow_html=True,
+    )
 
-st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
 
 # =========================
 # GRÁFICOS SUPERIORES
