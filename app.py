@@ -31,6 +31,7 @@ st.markdown(
             font-size: 2rem;
             font-weight: 700;
             color: #0F2744;
+            margin-top: 0.55rem;
             margin-bottom: 0.15rem;
         }
         .dashboard-subtitle {
@@ -387,23 +388,6 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
     ]
     milestone_y = -0.5
 
-    fig.add_trace(
-        go.Scatter(
-            x=milestone_dates,
-            y=[milestone_y] * len(milestone_dates),
-            mode="lines+markers+text",
-            text=milestone_labels,
-            textposition="top center",
-            textfont=dict(size=11, color="#A13A3F"),
-            marker=dict(size=11, color="#E5484D", line=dict(color="#C9353A", width=2)),
-            line=dict(color="#E9A7AA", width=2, dash="dot"),
-            name="",
-            showlegend=False,
-            hovertemplate="<b>Hito %{text}</b><br>%{x|%d %b %Y}<extra></extra>",
-            customdata=[[k, "milestone"] for k in milestone_keys],
-        )
-    )
-
     y_series = df_filtered["reported_diff"].dropna()
     if y_series.empty:
         y_min_data = 0.0
@@ -418,6 +402,36 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         center = (y_max + y_min) / 2
         y_min = center - 0.6
         y_max = center + 0.6
+
+    for milestone_date in milestone_dates:
+        fig.add_shape(
+            type="line",
+            x0=milestone_date,
+            x1=milestone_date,
+            y0=milestone_y,
+            y1=y_max,
+            xref="x",
+            yref="y",
+            line=dict(color="rgba(229,72,77,0.8)", width=1, dash="dot"),
+            layer="below",
+        )
+
+    fig.add_trace(
+        go.Scatter(
+            x=milestone_dates,
+            y=[milestone_y] * len(milestone_dates),
+            mode="lines+markers+text",
+            text=milestone_labels,
+            textposition="top center",
+            textfont=dict(size=11, color="#A13A3F"),
+            marker=dict(size=11, color="#E5484D", line=dict(color="#C9353A", width=2)),
+            line=dict(color="rgba(233,167,170,0.0)", width=2, dash="dot"),
+            name="",
+            showlegend=False,
+            hovertemplate="<b>Hito %{text}</b><br>%{x|%d %b %Y}<extra></extra>",
+            customdata=[[k, "milestone"] for k in milestone_keys],
+        )
+    )
 
     fig.update_layout(
         title="Diferencia reportada por fecha",
@@ -626,25 +640,27 @@ timeline_df = build_timeline_mapping(df)
 # =========================
 # HEADER
 # =========================
-st.markdown('<div class="dashboard-title">Dashboard de calibración 3iAtlas</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="dashboard-subtitle">Seguimiento por proyecto, frentes y fechas con contraste entre reporte manual y 3iAtlas.</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    '''
-    <div style="display:flex; gap:12px; margin-bottom:0.65rem; flex-wrap:wrap;">
-        <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.55rem 0.85rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.9rem; color:#17324F;">
-            <b>En prueba</b><br>Manual: 28% &nbsp;|&nbsp; 3iAtlas: 72%
+header_col1, header_col2 = st.columns([1.8, 1.2])
+with header_col1:
+    st.markdown('<div class="dashboard-title">Dashboard de calibración 3iAtlas</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="dashboard-subtitle">Seguimiento por proyecto, frentes y fechas con contraste entre reporte manual y 3iAtlas.</div>',
+        unsafe_allow_html=True,
+    )
+with header_col2:
+    st.markdown(
+        '''
+        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:flex-start; flex-wrap:wrap; margin-top:0.65rem;">
+            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:220px;">
+                <b>En prueba</b><br>Manual: 28% &nbsp;|&nbsp; 3iAtlas: 72%
+            </div>
+            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:260px;">
+                <b>Calibrados</b><br>Manual/no calibrados: 33% &nbsp;|&nbsp; 3iAtlas/calibrados: 67%
+            </div>
         </div>
-        <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.55rem 0.85rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.9rem; color:#17324F;">
-            <b>Calibrados</b><br>Manual/no calibrados: 33% &nbsp;|&nbsp; 3iAtlas/calibrados: 67%
-        </div>
-    </div>
-    ''',
-    unsafe_allow_html=True,
-)
+        ''',
+        unsafe_allow_html=True,
+    )
 
 # =========================
 # FILTROS
