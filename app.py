@@ -31,7 +31,7 @@ st.markdown(
             font-size: 2rem;
             font-weight: 700;
             color: #0F2744;
-            margin-top: 0.55rem;
+            margin-top: 1.05rem;
             margin-bottom: 0.15rem;
         }
         .dashboard-subtitle {
@@ -640,7 +640,7 @@ timeline_df = build_timeline_mapping(df)
 # =========================
 # HEADER
 # =========================
-header_col1, header_col2 = st.columns([1.8, 1.2])
+header_col1, header_col2 = st.columns([1.7, 1.7])
 with header_col1:
     st.markdown('<div class="dashboard-title">Dashboard de calibración 3iAtlas</div>', unsafe_allow_html=True)
     st.markdown(
@@ -650,11 +650,11 @@ with header_col1:
 with header_col2:
     st.markdown(
         '''
-        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:flex-start; flex-wrap:wrap; margin-top:0.65rem;">
-            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:220px;">
+        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:flex-start; flex-wrap:nowrap; margin-top:1.1rem;">
+            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:210px;">
                 <b>En prueba</b><br>Manual: 28% &nbsp;|&nbsp; 3iAtlas: 72%
             </div>
-            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:260px;">
+            <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:250px;">
                 <b>Calibrados</b><br>Manual/no calibrados: 33% &nbsp;|&nbsp; 3iAtlas/calibrados: 67%
             </div>
         </div>
