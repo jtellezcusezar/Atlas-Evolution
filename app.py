@@ -498,7 +498,8 @@ with selector_col2:
 with selector_col3:
     st.markdown(
         '<div style="padding-top: 1.9rem; color:#5A6B7E; font-size:0.9rem;">'
-        'La gráfica de línea muestra todos los frentes. La gráfica de barras profundiza en el frente seleccionado.'</div>',
+        'La gráfica de línea muestra todos los frentes. La gráfica de barras profundiza en el frente seleccionado.'
+        '</div>',
         unsafe_allow_html=True,
     )
 
