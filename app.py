@@ -126,7 +126,7 @@ EXCEL_PATH = BASE_DIR / "Calibracion Atlas - copia.xlsx"
 # =========================
 TIMELINE_EVENTS: List[Dict] = [
     {
-        "event_key": "2025-10-30_lectura",
+        "event_key": "hito_1",
         "date_label": "30 Oct 2025",
         "anchor_date": "2025-11-15",
         "title": "Lectura",
@@ -139,26 +139,7 @@ TIMELINE_EVENTS: List[Dict] = [
         ],
     },
     {
-        "event_key": "2025-10-30_localizacion",
-        "date_label": "30 Oct 2025",
-        "anchor_date": "2025-11-15",
-        "title": "Localización actividades",
-        "short_code": "3",
-        "situations": [
-            "3.1 Trabajo en horas por parte de MProject.",
-            "3.2 Identificación de actividades de obra.",
-            "3.3 Qué hacer con actividades sucesoras de las finalizadas o en ejecución.",
-            "3.4 Actividades huérfanas y en ejecución sin vínculo.",
-        ],
-        "solutions": [
-            "3.1 Fijar las actualizaciones en 8:00 y 17:00.",
-            "3.2 Concentrar la actualización en actividades que pertenecen al agrupador CONSTRUCCIÓN.",
-            "3.3 Actividades finalizadas y en ejecución eliminan dependencias de sus sucesoras según lógica de programación.",
-            "3.4 Anclar actividades al hito Corte.",
-        ],
-    },
-    {
-        "event_key": "2025-11-06_escritura_mp",
+        "event_key": "hito_2",
         "date_label": "06 Nov 2025",
         "anchor_date": "2025-11-22",
         "title": "Escritura sobre MP",
@@ -175,10 +156,29 @@ TIMELINE_EVENTS: List[Dict] = [
         ],
     },
     {
-        "event_key": "2025-11-21_configuracion_mproject",
-        "date_label": "21 Nov 2025",
+        "event_key": "hito_3",
+        "date_label": "12 Nov 2025",
+        "anchor_date": "2025-11-22",
+        "title": "Localización actividades",
+        "short_code": "3",
+        "situations": [
+            "3.1 Trabajo en horas por parte de MProject.",
+            "3.2 Identificación de actividades de obra.",
+            "3.3 Qué hacer con actividades sucesoras de las finalizadas o en ejecución.",
+            "3.4 Actividades huérfanas y en ejecución sin vínculo.",
+        ],
+        "solutions": [
+            "3.1 Fijar las actualizaciones en 8:00 y 17:00.",
+            "3.2 Concentrar la actualización en actividades que pertenecen al agrupador CONSTRUCCIÓN.",
+            "3.3 Actividades finalizadas y en ejecución eliminan dependencias de sus sucesoras según lógica de programación.",
+            "3.4 Anclar actividades al hito Corte.",
+        ],
+    },
+    {
+        "event_key": "hito_4",
+        "date_label": "14–20 Nov 2025",
         "anchor_date": "2025-11-29",
-        "title": "Configuración MProject",
+        "title": "Atrasos - Adelantos",
         "short_code": "4",
         "situations": [
             "4.1 Lag de 5 horas por configuración de MProject.",
@@ -190,24 +190,35 @@ TIMELINE_EVENTS: List[Dict] = [
         ],
     },
     {
-        "event_key": "2025-11-14_20_atrasos_adelantos",
-        "date_label": "14–20 Nov 2025",
-        "anchor_date": "2025-12-13",
-        "title": "Atrasos - Adelantos",
-        "short_code": "5-6",
+        "event_key": "hito_5",
+        "date_label": "21 Nov 2025",
+        "anchor_date": "2025-11-29",
+        "title": "Configuración MProject",
+        "short_code": "5",
         "situations": [
             "5.1 Identificar hitos de finalización.",
             "5.2 Cálculo automático de programación en actividades.",
-            "6.1 Tener en cuenta la lógica de programación (FC, CC, CF y FF).",
         ],
         "solutions": [
             "5.1 Estandarizar nombres de hitos informando fecha.",
             "5.2 Configurar actividades finalizadas y en ejecución en manual para evitar movimientos no deseados.",
+        ],
+    },
+    {
+        "event_key": "hito_6",
+        "date_label": "04 Dic 2025",
+        "anchor_date": "2025-12-13",
+        "title": "Lógica programación (FC, CC, CF, FF)",
+        "short_code": "6",
+        "situations": [
+            "6.1 Tener en cuenta la lógica de programación (FC, CC, CF y FF).",
+        ],
+        "solutions": [
             "6.1 La eliminación de dependencias en sucesoras debe seguir una lógica con condicionales.",
         ],
     },
     {
-        "event_key": "2025-12-17_ruta_critica",
+        "event_key": "hito_7",
         "date_label": "17 Dic 2025",
         "anchor_date": "2025-12-27",
         "title": "Ruta crítica",
@@ -220,7 +231,7 @@ TIMELINE_EVENTS: List[Dict] = [
         ],
     },
     {
-        "event_key": "2026-02-23_correccion_vinculacion",
+        "event_key": "hito_8",
         "date_label": "23 Feb 2026",
         "anchor_date": "2026-02-21",
         "title": "Corrección vinculación",
@@ -233,7 +244,7 @@ TIMELINE_EVENTS: List[Dict] = [
         ],
     },
     {
-        "event_key": "2026-03-04_actividad_critica",
+        "event_key": "hito_9",
         "date_label": "04 Mar 2026",
         "anchor_date": "2026-03-07",
         "title": "Actividad crítica",
@@ -423,62 +434,73 @@ def build_bar_chart(df_front: pd.DataFrame, selected_front: str) -> go.Figure:
     return fig
 
 
-def render_timeline_strip(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
-    st.markdown(
-        """
-        <div class="timeline-wrapper">
-            <div class="timeline-track-only"></div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+def build_timeline_chart(timeline_df: pd.DataFrame, active_event_key: Optional[str]) -> go.Figure:
+    plot_df = timeline_df.copy().reset_index(drop=True)
+    plot_df["x_pos"] = list(range(1, len(plot_df) + 1))
+    plot_df["y_pos"] = 1
+    plot_df["is_active"] = plot_df["event_key"] == active_event_key
+    plot_df["marker_color"] = plot_df["is_active"].map({True: "#E5484D", False: "#B9D9F7"})
+    plot_df["marker_line"] = plot_df["is_active"].map({True: "#C9353A", False: "#7EB8E6"})
+    plot_df["label_text"] = plot_df["date_label"] + "<br>" + plot_df["title"]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["x_pos"],
+            y=plot_df["y_pos"],
+            mode="lines",
+            line=dict(color="#B9D9F7", width=8),
+            hoverinfo="skip",
+            showlegend=False,
+        )
     )
 
-    cols = st.columns(len(timeline_df))
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["x_pos"],
+            y=plot_df["y_pos"],
+            mode="markers+text",
+            text=plot_df["label_text"],
+            textposition="bottom center",
+            textfont=dict(size=12, color="#163A63"),
+            marker=dict(
+                size=22,
+                color=plot_df["marker_color"],
+                line=dict(color=plot_df["marker_line"], width=3),
+            ),
+            customdata=plot_df[["event_key", "date_label", "title"]].values,
+            hovertemplate=(
+                "<b>%{customdata[1]}</b><br>"
+                "%{customdata[2]}<br>"
+                "<extra></extra>"
+            ),
+            showlegend=False,
+        )
+    )
 
-    for i, (_, row) in enumerate(timeline_df.iterrows()):
-        is_active = row["event_key"] == active_event_key
-        dot_color = "#2F6DB3" if is_active else "#B8C9DC"
-        text_color = "#163A63" if is_active else "#57728F"
-        border_color = "#2F6DB3" if is_active else "#B8C9DC"
-
-        with cols[i]:
-            st.markdown(
-                f"""
-                <div style="text-align:center; margin-top:-56px;">
-                    <div style="
-                        width:18px;
-                        height:18px;
-                        border-radius:50%;
-                        margin:0 auto 10px auto;
-                        background:{dot_color};
-                        border:3px solid white;
-                        box-shadow:0 0 0 2px {border_color};
-                    "></div>
-                    <div style="
-                        font-size:0.72rem;
-                        font-weight:700;
-                        color:{text_color};
-                        line-height:1.2;
-                        min-height:2.2rem;
-                    ">{row['date_label']}</div>
-                    <div style="
-                        font-size:0.78rem;
-                        color:#1E3B5C;
-                        line-height:1.2;
-                        margin-top:0.2rem;
-                        min-height:2.5rem;
-                    ">{row['title']}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            if st.button(
-                "Ver detalle",
-                key=f"timeline_btn_{row['event_key']}",
-                use_container_width=True,
-            ):
-                st.session_state["timeline_selected_key"] = row["event_key"]
+    fig.update_layout(
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        height=260,
+        margin=dict(l=30, r=30, t=30, b=80),
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showticklabels=False,
+            fixedrange=True,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showticklabels=False,
+            fixedrange=True,
+            range=[0.80, 1.18],
+        ),
+        dragmode=False,
+        clickmode="event+select",
+    )
+    return fig
 
 
 def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional[str]):
@@ -496,13 +518,16 @@ def render_timeline_detail(timeline_df: pd.DataFrame, active_event_key: Optional
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="timeline-subhead">Situaciones identificadas</div>', unsafe_allow_html=True)
-    for item in row["situations"]:
-        st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown('<div class="timeline-subhead">Situaciones identificadas</div>', unsafe_allow_html=True)
+        for item in row["situations"]:
+            st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="timeline-subhead">Soluciones implementadas</div>', unsafe_allow_html=True)
-    for item in row["solutions"]:
-        st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
+    with col_b:
+        st.markdown('<div class="timeline-subhead">Soluciones implementadas</div>', unsafe_allow_html=True)
+        for item in row["solutions"]:
+            st.markdown(f'<div class="timeline-text">• {item}</div>', unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -654,7 +679,20 @@ if auto_event_key is not None:
     st.session_state["timeline_selected_key"] = auto_event_key
 
 st.markdown('<div class="section-title">Línea de tiempo general</div>', unsafe_allow_html=True)
-render_timeline_strip(timeline_df, st.session_state["timeline_selected_key"])
+timeline_fig = build_timeline_chart(timeline_df, st.session_state["timeline_selected_key"])
+timeline_selection = st.plotly_chart(
+    timeline_fig,
+    use_container_width=True,
+    on_select="rerun",
+    selection_mode="points",
+)
+
+if timeline_selection and timeline_selection.selection and timeline_selection.selection.get("points"):
+    point = timeline_selection.selection["points"][0]
+    customdata = point.get("customdata")
+    if customdata and len(customdata) > 0:
+        st.session_state["timeline_selected_key"] = customdata[0]
+
 render_timeline_detail(timeline_df, st.session_state["timeline_selected_key"])
 
 # =========================
