@@ -650,7 +650,7 @@ with header_col1:
 with header_col2:
     st.markdown(
         '''
-        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:flex-start; flex-wrap:nowrap; margin-top:1.25rem;">
+        <div style="display:flex; gap:10px; justify-content:flex-end; align-items:flex-start; flex-wrap:nowrap; margin-top:1.6rem;">
             <div style="background:white; border:1px solid #E3E8EF; border-radius:14px; padding:0.5rem 0.75rem; box-shadow:0 2px 10px rgba(16,24,40,0.04); font-size:0.84rem; color:#17324F; min-width:210px;">
                 <b>En prueba</b><br>Manual: 28% &nbsp;|&nbsp; 3iAtlas: 72%
             </div>
