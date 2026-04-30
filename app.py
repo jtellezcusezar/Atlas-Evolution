@@ -420,16 +420,28 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         go.Scatter(
             x=milestone_dates,
             y=[milestone_y] * len(milestone_dates),
-            mode="lines+markers+text",
+            mode="markers+text",
             text=milestone_labels,
             textposition="top center",
             textfont=dict(size=11, color="#A13A3F"),
             marker=dict(size=11, color="#E5484D", line=dict(color="#C9353A", width=2)),
-            line=dict(color="rgba(233,167,170,0.0)", width=2, dash="dot"),
-            name="",
+            name="Calibraciones en el programa",
             showlegend=False,
             hovertemplate="<b>Hito %{text}</b><br>%{x|%d %b %Y}<extra></extra>",
             customdata=[[k, "milestone"] for k in milestone_keys],
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines+markers",
+            marker=dict(size=11, color="#E5484D", line=dict(color="#C9353A", width=2)),
+            line=dict(color="rgba(229,72,77,0.8)", width=1, dash="dot"),
+            name="Calibraciones en el programa",
+            showlegend=True,
+            hoverinfo="skip",
         )
     )
 
@@ -437,11 +449,11 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         title="Diferencia reportada por fecha",
         paper_bgcolor="white",
         plot_bgcolor="white",
-        legend_title="Frente",
+        legend_title="Serie",
         margin=dict(l=10, r=10, t=60, b=80),
         height=430,
         hovermode="x unified",
-        xaxis_title="Fecha",
+        xaxis_title="Fecha de reproyección / corte",
         yaxis_title="Diferencia reportada (días)",
         legend=dict(
             orientation="h",
@@ -452,7 +464,14 @@ def build_line_chart(df_filtered: pd.DataFrame, show_points: bool) -> go.Figure:
         ),
     )
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor="rgba(15,39,68,0.08)", zeroline=False, range=[y_min, y_max])
+    fig.update_yaxes(
+        gridcolor="rgba(15,39,68,0.08)",
+        zeroline=False,
+        range=[y_min, y_max],
+        tick0=0,
+        dtick=1,
+        tickformat="d",
+    )
     return fig
 
 
